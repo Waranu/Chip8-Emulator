@@ -82,13 +82,14 @@ Chip8 *CHIP8_Init(void) {
   memset(chip->Display, 0, sizeof(chip->Display));
   memset(chip->Stack, 0, sizeof(chip->Stack));
   memset(chip->V, 0, sizeof(chip->V));
-
+  memset(chip->Keypad, false, sizeof(chip->Keypad));
   chip->SP = 0;
   chip->PC = START_ADDR;
 
   for (int i = 0; i < FONTSET_SIZE; i++) {
     chip->Memory[FONTSET_START_ADDR + i] = FONTSET[i];
   }
+
 
   return chip;
 }
@@ -208,7 +209,6 @@ void CHIP8_EmulateCycle(Chip8 *chip) {
       chip->PC += 2;
   case 0xA: /// ANNN
     chip->I = NNN;
-    printf("I set to: 0x%03X\n", chip->I);
     break;
   case 0xB: // BNNN
     chip->I = NNN + chip->V[0];
@@ -216,7 +216,6 @@ void CHIP8_EmulateCycle(Chip8 *chip) {
   case 0xC: // CXNN
     int n = rand() % 256;
     chip->V[X] = n & NN;
-    printf("%i", chip->V[X]);
     break;
   case 0xD: // DXYN
 
