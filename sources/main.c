@@ -1,70 +1,53 @@
-#include "math.h"
 #include "raylib.h"
+#include "stdlib.h"
 #include "utils.h"
-Ship ship = {.sprite = {
-                 (RL_Vector2){0, -25.0f},
-                 (RL_Vector2){-12.5, 12.5},
-                 (RL_Vector2){12.5, 12.5},
-             }};
+#include <stdio.h>
 
-void InitGame();
-void DrawGame();
-void UpdateGame(float dt);
-int main() {
+int main(int argc, char *argv[]) {
 
-  RL_InitWindow(WIN_WIDTH, WIN_HEIGHT, "hello");
+  RL_InitWindow(DISPLAY_ROWS * DISPLAY_SCALE * 2.5, DISPLAY_COLS * DISPLAY_SCALE * 2.5,
+                "Chip8-Emulator");
   RL_SetTargetFPS(60);
 
-  InitGame();
+  float currTime = 0.0f;
+  float lastInstructionTime = -100.0f;
+
+  Chip8 *c = CHIP8_Init();
+  if (c == NULL)
+    return 1;
+
+
+  LoadRom(argv[1], c);
+
+
 
   while (!RL_WindowShouldClose()) {
 
-    UpdateGame(RL_GetFrameTime());
+    currTime = RL_GetTime();
+
     RL_BeginDrawing();
     RL_ClearBackground(RL_BLACK);
-    DrawGame();
+
+    for (int y = 0; y < DISPLAY_COLS; y++) {
+      for (int x = 0; x < DISPLAY_ROWS; x++) {
+
+        
+        if (c->Display[x][y] == 1) {
+        
+          RL_DrawRectangle(x * DISPLAY_SCALE * 2.5, y * DISPLAY_SCALE * 2.5, DISPLAY_SCALE * 2.5,
+                           DISPLAY_SCALE * 2.5, RL_WHITE);
+        }
+      }
+    }
     RL_EndDrawing();
 
-  }
-}
-
-void InitGame() { InitShip(&ship, 5); }
-
-void DrawGame() {
-  DrawShip(&ship);
-  RL_DrawFPS(15, 15);
-}
-
-void UpdateGame(float dt) {
-
-  if (ship.bullet.pos.x > WIN_WIDTH || ship.bullet.pos.x < 0)
-    ship.bullet.draw_flag = false;
-  if (ship.bullet.pos.y > WIN_HEIGHT || ship.bullet.pos.y < 0)
-    ship.bullet.draw_flag = false;
-
-  if (RL_IsKeyDown(KEY_SPACE)) {
-    if (!ship.bullet.draw_flag) {
-      ShootBullet(&ship);
+    if (currTime - lastInstructionTime >= INSTRUCTION_TIME) {
+      lastInstructionTime = currTime;
+      CHIP8_EmulateCycle(c);
     }
+
+    CHIP8_DecrementTimer(c, currTime);
   }
 
-  if (RL_IsKeyDown(KEY_W)) {
-    ThrustShip(&ship);
-  }
-
-  if (RL_IsKeyDown(KEY_A)) {
-    ship.angle -= ROTATION_SPEED * dt;
-  }
-  if (RL_IsKeyDown(KEY_D)) {
-    ship.angle += ROTATION_SPEED * dt;
-  }
-  ship.pivot.x += ship.vel.x * dt;
-  ship.pivot.y += ship.vel.y * dt;
-  BoundObjectToScreen(&ship.pivot);
-
-  ship.vel.x += (ship.vel.x / DEACCELARATION) * -1 * dt;
-  ship.vel.y += (ship.vel.y / DEACCELARATION) * -1 * dt;
-
-  ship.bullet.pos.x += ship.bullet.vel.x * dt;
-  ship.bullet.pos.y += ship.bullet.vel.y * dt;
+  free(c);
 }

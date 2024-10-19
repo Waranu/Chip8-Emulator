@@ -18,7 +18,7 @@ file(GLOB_RECURSE SRC "${CMAKE_CURRENT_SOURCE_DIR}/sources/*.c")
 add_executable(main ${SRC} )
 
 
-target_compile_options(main PRIVATE -Wall -Wno-unknown-pragmas -Wno-type-limits -Wno-implicit-function-declaration -std=c2x)
+# target_compile_options(main PRIVATE -Wall -Wno-ignore-pragmas -Wno-type-limits -Wno-implicit-function-declaration -std=c2x)
 
 
 target_include_directories(main PUBLIC ${RAYLIB_PATH}/include )

@@ -1,34 +1,39 @@
 #pragma once
 
-#include "raylib.h"
-#define WIN_WIDTH 1024
-#define WIN_HEIGHT 800
-#define ROTATION_SPEED 1.95
-#define LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
-#define DEACCELARATION 2
+#include <stdint.h>
 
-typedef struct Bullet {
-  RL_Vector2 pos;
-  RL_Vector2 vel;
-  bool draw_flag; 
-} Bullet;
-typedef struct Ship {
-  RL_Vector2 pivot;
-  const RL_Vector2 sprite[3];
-  RL_Vector2 model[3];
-  float angle;
-  RL_Vector2 vel;
-  Bullet bullet;
-} Ship;
+#define DISPLAY_ROWS 64
+#define DISPLAY_COLS 32
+#define DISPLAY_SCALE 5
+#define START_ADDR 0x200
+#define FONTSET_START_ADDR 0x50
+#define FONTSET_SIZE 80
+#define INSTRUCTION_TIME 1.0f / 700.0f
+#define OPCODE_X(opcode) ((opcode & 0x0F00) >> 8)
+#define OPCODE_Y(opcode) ((opcode & 0x00F0) >> 4)
+#define OPCODE_N(opcode) (opcode & 0x000F)
+#define OPCODE_NN(opcode) (opcode & 0x00FF)
+#define OPCODE_NNN(opcode) (opcode & 0x0FFF)
 
-void InitShip(Ship *ship, float scaler);
+typedef struct {
+  uint8_t Memory[4096];
+  uint8_t Display[DISPLAY_ROWS][DISPLAY_COLS];
+  uint8_t Timer;
+  uint8_t SoundTimer;
+  uint8_t V[16];
+  uint16_t Opcode;
+  uint16_t PC;
+  uint16_t I;
+  struct {
+    uint16_t Stack[16];
+    uint16_t SP;
+  };
+  bool Keypad[16];
+} Chip8;
 
-void DrawShip(Ship *ship);
+int LoadRom(char *romName, Chip8 *chip);
 
-void RotateShip(Ship *ship);
-
-void ThrustShip(Ship *ship);
-
-void BoundObjectToScreen(RL_Vector2 *obj);
-
-void ShootBullet(Ship *ship);
+Chip8 *CHIP8_Init(void);
+void CHIP8_DrawGrahpics(Chip8 *chip);
+void CHIP8_EmulateCycle(Chip8 *chip );
+void CHIP8_DecrementTimer(Chip8 *chip, float now);
